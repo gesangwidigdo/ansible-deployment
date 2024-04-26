@@ -5,3 +5,9 @@
   become: true
   roles:
     - ../roles/nginx-prepare
+
+- name: Prepare MySQL
+  hosts: web_servers
+  become: true
+  roles:
+    - ../roles/mysql-prepare

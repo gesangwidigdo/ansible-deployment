@@ -1,2 +1,28 @@
 ---
 # tasks file for mysql-prepare
+- name: Import global vars
+  include_vars:
+    file: ../../../env/vars.yml
+
+- name: Install MySQL
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - mysql-server
+    - mysql-client
+    - python3-mysqldb
+
+- name: Create Database
+  community.mysql.mysql_db:
+    name: '{{ var_dbname }}'
+    state: present
+
+- name: Config User
+  community.mysql.mysql_user:
+    name: '{{ var_dbuser }}'
+    password: '{{ var_dbpass }}'
+    priv: '{{ var_dbname }}.*:ALL'
+    state: present
+    column_case_sensitive: false

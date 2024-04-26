@@ -1,0 +1,5 @@
+---
+# global vars
+var_dbname: laravel
+var_dbuser: admin
+var_dbpass: admin
