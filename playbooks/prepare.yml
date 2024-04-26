@@ -1,0 +1,7 @@
+---
+
+- name: Prepare NGINX
+  hosts: web_servers
+  become: true
+  roles:
+    - ../roles/nginx-prepare
