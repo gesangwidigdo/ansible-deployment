@@ -1,2 +1,22 @@
 ---
 # tasks file for frontend-build
+- name: Install nvm
+  shell:  |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+
+- name: Source ~/.{{ item }}
+  lineinfile: 
+    dest: ~/.{{ item }}
+    line: "source ~/.nvm/nvm.sh"
+    create: true
+  tags: nvm
+  with_items:
+    - bashrc
+    - profile
+
+- name: Install node and set version
+  become: true
+  become_user: root
+  shell: "source /root/.nvm/nvm.sh && nvm install 18"
+  args:
+    executable: /bin/bash

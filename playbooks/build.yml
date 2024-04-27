@@ -1,7 +1,13 @@
 ---
 
-- name: Backend Build
+# - name: Backend Build
+#   hosts: web_servers
+#   become: true
+#   roles:
+#     - ../roles/backend-build
+
+- name: Frontend Build
   hosts: web_servers
   become: true
   roles:
-    - ../roles/backend-build
+    - ../roles/frontend-build
