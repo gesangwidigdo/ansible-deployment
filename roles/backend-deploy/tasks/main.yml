@@ -13,6 +13,12 @@
   become: true
   notify: Restart NGINX
 
+- name: Restart NGINX
+  become: true
+  service:
+    name: nginx
+    state: restarted
+
 - name: Curl result
   uri:
     url: "http://localhost:9000"

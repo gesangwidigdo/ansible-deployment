@@ -56,6 +56,12 @@
     recurse: true
   become: true
 
+- name: Change index.php Permission
+  file:
+    path: /var/www/be-todo/public/index.php
+    mode: '0666'
+  become: true
+
 - name: Change Ownership
   file:
     path: /var/www/be-todo

@@ -1,2 +1,33 @@
 ---
 # tasks file for frontend-deploy
+- name: Copy FE Template
+  copy:
+    src: ../templates/fe-template.j2
+    dest: /etc/nginx/sites-available/frontend
+
+- name: Link to sites-enabled
+  file:
+    src: /etc/nginx/sites-available/frontend
+    dest: /etc/nginx/sites-enabled/frontend
+    state: link
+  become: true
+  notify: Restart NGINX
+
+- name: Start FE
+  shell: |
+    source ~/.nvm/nvm.sh && nvm use 18 && yarn start &
+  args:
+    executable: /bin/bash
+    chdir: /var/www/fe-todo
+  become: true
+
+- name: FE Curl Result
+  uri:
+    url: "http://localhost:3000"
+    method: GET
+    return_content: true
+  register: result
+
+- name: FE Debug Register
+  debug:
+    var: result.content

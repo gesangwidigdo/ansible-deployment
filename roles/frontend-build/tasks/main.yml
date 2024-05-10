@@ -1,22 +1,80 @@
 ---
 # tasks file for frontend-build
-- name: Install nvm
-  shell:  |
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 
-- name: Source ~/.{{ item }}
-  lineinfile: 
-    dest: ~/.{{ item }}
-    line: "source ~/.nvm/nvm.sh"
-    create: true
-  tags: nvm
-  with_items:
-    - bashrc
-    - profile
+- name: Setup Node
+  become: yes
+  become_flags: -i # Execute config files such as .profile (Ansible uses non-interactive login shells)
+  become_user: pierro
+  block:
+    - name: Install nvm
+      ansible.builtin.shell: >
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+      args:
+        executable: /bin/bash
+        chdir: "$HOME"
+        creates: "$HOME/.nvm/nvm.sh"
 
-- name: Install node and set version
+    - name: Setup .profile
+      ansible.builtin.lineinfile:
+        path: ~/.profile
+        line: source ~/.nvm/nvm.sh # This will make sure Node is on the user's PATH
+        create: yes
+
+    - name: Install node
+      ansible.builtin.shell: |
+        /bin/bash -c "source ~/.nvm/nvm.sh && nvm install 18 && nvm alias default 18"
+      args:
+        executable: /bin/bash
+        chdir: "$HOME"
+        creates: "$HOME/.nvm/versions/node/v{{item}}"
+      loop:
+        - 14.15.0
+
+- name: Get yarn package
+  shell: |
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+- name: Install yarn
   become: true
-  become_user: root
-  shell: "source /root/.nvm/nvm.sh && nvm install 18"
+  apt:
+    name: yarn
+    state: present
+    update_cache: true
+
+- name: Add safe directory to git
+  community.general.git_config:
+    name: safe.directory
+    value: /var/www/fe-todo
+    add_mode: add
+    scope: global
+
+- name: Clone FE Repo
+  git:
+    repo: https://github.com/elshiraphine/fe-todo.git
+    dest: /var/www/fe-todo
+    force: true
+
+- name: Change permission
+  file:
+    path: /var/www/fe-todo
+    mode: '0777'
+    recurse: true
+  become: true
+
+- name: Change ownership
+  file:
+    path: /var/www/fe-todo
+    group: www-data
+    owner: www-data
+    recurse: true
+  become: true
+
+- name: Install Yarn Dependencies and Build
+  shell: |
+    source ~/.nvm/nvm.sh && nvm use 18
+    yarn install --ignore-engines && yarn build
   args:
     executable: /bin/bash
+    chdir: /var/www/fe-todo
+  become: true

@@ -5,3 +5,9 @@
   become: true
   roles:
     - ../roles/backend-deploy
+
+- name: Frontend Deploy
+  hosts: web_servers
+  become: true
+  roles:
+    - ../roles/frontend-deploy
